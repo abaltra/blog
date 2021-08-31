@@ -1,8 +1,10 @@
 package post
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"github.com/abaltra/blog/server/responsehandler"
 )
 
 type Handler struct {
@@ -10,35 +12,57 @@ type Handler struct {
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	p := h.Repository.Create()
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(p)
+	p := Post{
+		Title:    "a test",
+		ID:       1,
+		AuthorID: "abaltra",
+	}
+
+	p.BuildSlug()
+
+	p, err := h.Repository.Create(p)
+
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+	} else {
+		responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
+	}
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	p := h.Repository.Update(3, "asdasd", false)
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(p)
+	// p := h.Repository.Update(3, "asdasd", false)
+	// TODO: FIgure out how to do updates
+
+	fmt.Println("Update: TODO!!!")
+	p := Post{
+		Slug: "IM A LIEEE",
+	}
+	responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	h.Repository.DeleteByID("")
-	w.WriteHeader(http.StatusOK)
+	h.Repository.DeleteByID(1)
+	responsehandler.EncodeJSONResponse(w, nil, http.StatusOK, nil)
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
-	p := h.Repository.List(0, 100)
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(p)
+	filters := map[string]string{
+		"AuthorID": "abaltra",
+	}
+	p, err := h.Repository.List(0, 100, filters)
+
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+	} else {
+		responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
+	}
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
-	p := h.Repository.GetBySlug("1234")
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(p)
-
+	p, err := h.Repository.GetBySlug("a-test")
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+	} else {
+		responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
+	}
 }

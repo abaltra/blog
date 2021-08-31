@@ -28,6 +28,10 @@ func NewConfig() *Config {
 		os.Setenv("PORT", "5000")
 	}
 
+	if os.Getenv("MONGO_CONNECTION_STRING") == "" {
+		os.Setenv("MONGO_CONNECTION_STRING", "mongodb://localhost:27017")
+	}
+
 	if os.Getenv("SERVER_READ_TIMEOUT") == "" {
 		os.Setenv("SERVER_READ_TIMEOUT", "2")
 	}
@@ -52,7 +56,7 @@ func NewConfig() *Config {
 		Env:                os.Getenv("ENV"),
 		LogLevel:           os.Getenv("LOG_LEVEL"),
 		Port:               os.Getenv("PORT"),
-		DBConnectionString: os.Getenv("DB_CONNECTION_STRING"),
+		DBConnectionString: os.Getenv("MONGO_CONNECTION_STRING"),
 		ReadTimeout:        serverReadTimeout,
 		WriteTimeout:       serverWriteTimeout,
 	}

@@ -21,6 +21,8 @@ func main() {
 		Config: config,
 	}
 
+	pm.Init()
+
 	ph := &post.Handler{
 		Repository: pm,
 	}
