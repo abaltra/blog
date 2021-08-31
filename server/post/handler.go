@@ -1,10 +1,16 @@
 package post
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/abaltra/blog/server/responsehandler"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -12,15 +18,23 @@ type Handler struct {
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	p := Post{
-		Title:    "a test",
-		ID:       1,
-		AuthorID: "abaltra",
+	b, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+		return
 	}
 
-	p.BuildSlug()
+	var post Post
+	json.Unmarshal(b, &post)
 
-	p, err := h.Repository.Create(p)
+	post.BuildSlug()
+	post.CreatedAt = time.Now()
+	post.Version = 1
+	post.ID = uuid.New().String()
+	post.AuthorID = "abaltra"
+
+	p, err := h.Repository.Create(post)
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -41,15 +55,63 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	h.Repository.DeleteByID(1)
+	vars := mux.Vars(r)
+	p, err := h.Repository.GetBySlug(vars["slug"])
+
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadGateway)
+		return
+	}
+
+	if p == nil {
+		responsehandler.EncodeJSONError(w, nil, http.StatusNotFound)
+		return
+	}
+
+	h.Repository.DeleteByID(p.ID)
 	responsehandler.EncodeJSONResponse(w, nil, http.StatusOK, nil)
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	from := vars["from"]
+	var from_int int
+	if from == "" {
+		from_int = 0
+	} else {
+		var err error
+		from_int, err = strconv.Atoi(from)
+
+		if err != nil {
+			responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
+	size := vars["size"]
+	var size_int int
+	if size == "" {
+		size_int = 100
+	} else {
+		var err error
+		size_int, err = strconv.Atoi(size)
+
+		if err != nil {
+			responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
+	if from_int < 0 || size_int > 200 {
+		responsehandler.EncodeJSONError(w, fmt.Errorf("Invalid FROM %d smaller than 0 or SIZE %d larger than 100", from_int, size_int), http.StatusBadRequest)
+	}
+
 	filters := map[string]string{
 		"AuthorID": "abaltra",
 	}
-	p, err := h.Repository.List(0, 100, filters)
+
+	p, err := h.Repository.List(from_int, size_int, filters)
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -59,7 +121,9 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
-	p, err := h.Repository.GetBySlug("a-test")
+	vars := mux.Vars(r)
+
+	p, err := h.Repository.GetBySlug(vars["slug"])
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
 	} else {

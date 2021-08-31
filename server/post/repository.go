@@ -30,6 +30,10 @@ func (m *Repository) Init() {
 
 	postsCollection = DB.Database("blog").Collection("posts")
 
+	if err := m.Ping(); err != nil {
+		panic(err)
+	}
+
 	fmt.Printf("Connected to Mongo DB at %s\n", m.Config.DBConnectionString)
 }
 
@@ -60,10 +64,10 @@ func (m *Repository) DeleteBySlug(slug string) error {
 	return err
 }
 
-func (m *Repository) DeleteByID(id int) error {
+func (m *Repository) DeleteByID(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	filter := map[string]int{
+	filter := map[string]string{
 		"id": id,
 	}
 	_, err := postsCollection.DeleteMany(ctx, filter)

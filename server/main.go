@@ -22,6 +22,7 @@ func main() {
 	}
 
 	pm.Init()
+	pm.Ping()
 
 	ph := &post.Handler{
 		Repository: pm,
