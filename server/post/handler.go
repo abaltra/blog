@@ -17,6 +17,10 @@ type Handler struct {
 	Repository *Repository
 }
 
+type updateRequest struct {
+	Body string `json:"Body"`
+}
+
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 
@@ -43,14 +47,62 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	// p := h.Repository.Update(3, "asdasd", false)
-	// TODO: FIgure out how to do updates
+func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	p, err := h.Repository.GetBySlug(vars["slug"])
 
-	fmt.Println("Update: TODO!!!")
-	p := Post{
-		Slug: "IM A LIEEE",
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+		return
 	}
+
+	if p == nil {
+		responsehandler.EncodeJSONError(w, nil, http.StatusNotFound)
+		return
+	}
+
+	if p.IsPublished {
+		return
+	}
+
+	p.PublishedAt = time.Now()
+	p.IsPublished = true
+
+	h.Repository.Save(*p)
+}
+
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	p, err := h.Repository.GetBySlug(vars["slug"])
+
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if p == nil {
+		responsehandler.EncodeJSONError(w, nil, http.StatusNotFound)
+		return
+	}
+
+	requestContents, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var ur updateRequest
+	json.Unmarshal(requestContents, &ur)
+
+	p.UpdatedAt = time.Now()
+	p.ContentRaw = ur.Body
+
+	if err := h.Repository.Save(*p); err != nil {
+		responsehandler.EncodeJSONError(w, err, http.StatusInternalServerError)
+		return
+	}
+
 	responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
 }
 
@@ -107,8 +159,14 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		responsehandler.EncodeJSONError(w, fmt.Errorf("Invalid FROM %d smaller than 0 or SIZE %d larger than 100", from_int, size_int), http.StatusBadRequest)
 	}
 
-	filters := map[string]string{
-		"AuthorID": "abaltra",
+	showDrafts, _ := strconv.ParseBool(vars["showDrafts"])
+
+	filters := make(map[string]interface{})
+	filters["IsPublished"] = true
+
+	if showDrafts {
+		filters["AuthorID"] = "abaltra"
+		filters["IsPublished"] = nil
 	}
 
 	p, err := h.Repository.List(from_int, size_int, filters)

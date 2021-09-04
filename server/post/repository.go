@@ -53,6 +53,20 @@ func (m *Repository) Create(post Post) (Post, error) {
 	return post, err
 }
 
+func (m *Repository) Save(p Post) error {
+	fmt.Println("Updating a post")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := map[string]string{
+		"slug": p.Slug,
+	}
+
+	_, err := postsCollection.UpdateOne(ctx, filter, p)
+
+	return err
+}
+
 func (m *Repository) DeleteBySlug(slug string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -75,12 +89,12 @@ func (m *Repository) DeleteByID(id string) error {
 	return err
 }
 
-func (m *Repository) List(from int, size int, filters map[string]string) ([]*Post, error) {
+func (m *Repository) List(from int, size int, filters map[string]interface{}) ([]*Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	fmt.Printf("Listing posts. From %d, page size %d\n", from, size)
 
-	query := make(map[string]string)
+	query := make(map[string]interface{})
 
 	if filters != nil {
 		for key, value := range filters {
