@@ -3,9 +3,9 @@ package post
 import (
 	"context"
 	"fmt"
+	"glog/config"
 	"time"
 
-	"github.com/abaltra/blog/server/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"

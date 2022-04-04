@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"glog/config"
+	"glog/post"
 	"net/http"
 	"time"
 
-	"github.com/abaltra/blog/server/config"
-	"github.com/abaltra/blog/server/post"
 	"github.com/gorilla/mux"
 )
 
@@ -16,6 +16,7 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Println("Starting glog")
 	config := config.NewConfig()
 	pm := &post.Repository{
 		Config: config,

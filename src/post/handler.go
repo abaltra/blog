@@ -8,7 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/abaltra/blog/server/responsehandler"
+	"glog/responsehandler"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
