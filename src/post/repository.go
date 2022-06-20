@@ -15,7 +15,6 @@ type Repository struct {
 	Config *config.Config
 }
 
-var postsCollection *mongo.Collection
 var DB *mongo.Client
 
 func (m *Repository) Init() {
@@ -27,8 +26,6 @@ func (m *Repository) Init() {
 	if err != nil {
 		panic(err)
 	}
-
-	postsCollection = DB.Database("blog").Collection("posts")
 
 	if err := m.Ping(); err != nil {
 		panic(err)
@@ -43,8 +40,10 @@ func (m *Repository) Ping() error {
 	return DB.Ping(ctx, readpref.Primary())
 }
 
-func (m *Repository) Create(post Post) (Post, error) {
+func (m *Repository) Create(tenantID string, post Post) (Post, error) {
 	fmt.Println("Creating a post")
+	
+	postsCollection := DB.Database(tenantID).Collection("posts")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -53,8 +52,9 @@ func (m *Repository) Create(post Post) (Post, error) {
 	return post, err
 }
 
-func (m *Repository) Save(p Post) error {
+func (m *Repository) Save(tenantID string, p Post) error {
 	fmt.Println("Updating a post")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -62,34 +62,38 @@ func (m *Repository) Save(p Post) error {
 		"slug": p.Slug,
 	}
 
+	postsCollection := DB.Database(tenantID).Collection("posts")
 	_, err := postsCollection.UpdateOne(ctx, filter, p)
 
 	return err
 }
 
-func (m *Repository) DeleteBySlug(slug string) error {
+func (m *Repository) DeleteBySlug(tenantID string, slug string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	filter := map[string]string{
 		"slug": slug,
 	}
+
+	postsCollection := DB.Database(tenantID).Collection("posts")
 	_, err := postsCollection.DeleteMany(ctx, filter)
 
 	return err
 }
 
-func (m *Repository) DeleteByID(id string) error {
+func (m *Repository) DeleteByID(tenantID string, id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	filter := map[string]string{
 		"id": id,
 	}
+	postsCollection := DB.Database(tenantID).Collection("posts")
 	_, err := postsCollection.DeleteMany(ctx, filter)
 
 	return err
 }
 
-func (m *Repository) List(from int, size int, filters map[string]interface{}) ([]*Post, error) {
+func (m *Repository) List(tenantID string, from int, size int, filters map[string]interface{}) ([]*Post, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	fmt.Printf("Listing posts. From %d, page size %d\n", from, size)
@@ -111,6 +115,7 @@ func (m *Repository) List(from int, size int, filters map[string]interface{}) ([
 
 	results := []*Post{}
 
+	postsCollection := DB.Database(tenantID).Collection("posts")
 	curr, err := postsCollection.Find(ctx, query, options)
 
 	if err != nil {
@@ -132,7 +137,7 @@ func (m *Repository) List(from int, size int, filters map[string]interface{}) ([
 	return results, nil
 }
 
-func (m *Repository) GetBySlug(slug string) (*Post, error) {
+func (m *Repository) GetBySlug(tenantID string, slug string) (*Post, error) {
 	fmt.Printf("Getting post by slug %s\n", slug)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -141,6 +146,7 @@ func (m *Repository) GetBySlug(slug string) (*Post, error) {
 	}
 
 	var result Post
+	postsCollection := DB.Database(tenantID).Collection("posts")
 	err := postsCollection.FindOne(ctx, filter).Decode(&result)
 
 	return &result, err

@@ -32,12 +32,12 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/test", testHandler)
-	router.HandleFunc("/posts", ph.List).Methods(http.MethodGet)
-	router.HandleFunc("/posts", ph.Create).Methods(http.MethodPost)
-	router.HandleFunc("/posts/{slug}", ph.Get).Methods(http.MethodGet)
-	router.HandleFunc("/posts/{slug}", ph.Delete).Methods(http.MethodDelete)
-	router.HandleFunc("/posts/{slug}", ph.Update).Methods(http.MethodPost)
-	router.HandleFunc("/posts/{slug}/publish", ph.Publish).Methods(http.MethodPut)
+	router.HandleFunc("/tenant/{tenantID}/posts", ph.List).Methods(http.MethodGet)
+	router.HandleFunc("/tenant/{tenantID/posts", ph.Create).Methods(http.MethodPost)
+	router.HandleFunc("/tenant/{tenantID}/posts/{slug}", ph.Get).Methods(http.MethodGet)
+	router.HandleFunc("/tenant/{tenantID}/posts/{slug}", ph.Delete).Methods(http.MethodDelete)
+	router.HandleFunc("/tenant/{tenantID}/posts/{slug}", ph.Update).Methods(http.MethodPost)
+	router.HandleFunc("/tenant/{tenantID}/posts/{slug}/publish", ph.Publish).Methods(http.MethodPut)
 
 	srv := &http.Server{
 		Handler:      router,

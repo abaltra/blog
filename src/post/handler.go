@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"glog/responsehandler"
-
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -24,22 +22,20 @@ type updateRequest struct {
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
+	vars := mux.Vars(r)
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	var post Post
-	json.Unmarshal(b, &post)
+	var createRequest CreatePostRequest
 
-	post.BuildSlug()
-	post.CreatedAt = time.Now()
-	post.Version = 1
-	post.ID = uuid.New().String()
-	post.AuthorID = "abaltra"
+	json.Unmarshal(b, &createRequest)
 
-	p, err := h.Repository.Create(post)
+	post := NewPost("abaltra", createRequest)
+
+	p, err := h.Repository.Create(vars["tenantID"], *post)
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -50,7 +46,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	p, err := h.Repository.GetBySlug(vars["slug"])
+	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -69,12 +65,12 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	p.PublishedAt = time.Now()
 	p.IsPublished = true
 
-	h.Repository.Save(*p)
+	h.Repository.Save(vars["tenantID"], *p)
 }
 
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	p, err := h.Repository.GetBySlug(vars["slug"])
+	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -99,7 +95,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	p.UpdatedAt = time.Now()
 	p.ContentRaw = ur.Body
 
-	if err := h.Repository.Save(*p); err != nil {
+	if err := h.Repository.Save(vars["tenantID"], *p); err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -109,7 +105,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	p, err := h.Repository.GetBySlug(vars["slug"])
+	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadGateway)
@@ -121,7 +117,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Repository.DeleteByID(p.ID)
+	h.Repository.DeleteByID(vars["tenantID"], p.ID)
 	responsehandler.EncodeJSONResponse(w, nil, http.StatusOK, nil)
 }
 
@@ -170,7 +166,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		filters["IsPublished"] = nil
 	}
 
-	p, err := h.Repository.List(from_int, size_int, filters)
+	p, err := h.Repository.List(vars["tenantID"], from_int, size_int, filters)
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -182,7 +178,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	p, err := h.Repository.GetBySlug(vars["slug"])
+	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
 	} else {
