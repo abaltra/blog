@@ -10,6 +10,7 @@ import (
 
 	"glog/responsehandler"
 	"github.com/gorilla/mux"
+
 )
 
 type Handler struct {
@@ -20,6 +21,18 @@ type updateRequest struct {
 	Body string `json:"Body"`
 }
 
+
+// Create godoc
+// @Summary      Create a new Post
+// @Description  Create a new post with an auto-generated ID
+// @Accept       json
+// @Produce      json
+// @Param        tenantID   path      int  true  "Tenant ID"
+// @Param        {object} body post.CreatePostRequest true "Post to create"
+// @Success      200  {object}  post.Post
+// @Failure      400  {object}  responsehandler.Error
+// @Failure      500  {object}  responsehandler.Error
+// @Router       /v2/tenant/{tenantID/posts [get]
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	vars := mux.Vars(r)

@@ -1,0 +1,137 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Very simple implementation of a bloggin platform using Mongo as a data store and Go with gorilla/mux.",
+        "title": "Glog - A Go Blogging backend using Mongo",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {},
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "blog.abaltra.me/api",
+    "basePath": "/v1",
+    "paths": {
+        "/v2/tenant/{tenantID/posts": {
+            "get": {
+                "description": "Create a new post with an auto-generated ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a new Post",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Tenant ID",
+                        "name": "tenantID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Post to create",
+                        "name": "{object}",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/post.CreatePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/post.Post"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responsehandler.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responsehandler.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "post.CreatePostRequest": {
+            "type": "object",
+            "properties": {
+                "Abstract": {
+                    "type": "string"
+                },
+                "ContentRaw": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                }
+            }
+        },
+        "post.Post": {
+            "type": "object",
+            "properties": {
+                "Abstract": {
+                    "type": "string"
+                },
+                "AuthorID": {
+                    "type": "string"
+                },
+                "ContentRaw": {
+                    "type": "string"
+                },
+                "CreatedAt": {
+                    "type": "string"
+                },
+                "ID": {
+                    "type": "string"
+                },
+                "IsPublished": {
+                    "type": "boolean"
+                },
+                "LastEditedBy": {
+                    "type": "string"
+                },
+                "PublishedAt": {
+                    "type": "string"
+                },
+                "Slug": {
+                    "type": "string"
+                },
+                "Title": {
+                    "type": "string"
+                },
+                "UpdatedAt": {
+                    "type": "string"
+                },
+                "Version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "responsehandler.Error": {
+            "description": "Error message with HTTP status code and error message",
+            "type": "object",
+            "properties": {
+                "Message": {
+                    "type": "string"
+                },
+                "StatusCode": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

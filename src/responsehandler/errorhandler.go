@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+
+// Error model info
+// @Description Error message with HTTP status code and error message
 type Error struct {
 	StatusCode int    `json:"StatusCode"`
 	Message    string `json:"Message"`
