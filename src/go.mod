@@ -6,7 +6,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/swaggo/http-swagger v1.3.0
-	github.com/swaggo/http-swagger/example/gorilla v0.0.0-20220611072802-7af1c17f1a0f
 	github.com/swaggo/swag v1.8.3
 	go.mongodb.org/mongo-driver v1.8.4
 )
