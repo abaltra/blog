@@ -9,8 +9,6 @@ func TestSlugCreation(t *testing.T) {
 
 	expected := "this-has-spaces"
 
-	p.BuildSlug()
-
 	if expected != p.Slug {
 		t.Errorf("Expected %s to equal %s", p.Slug, expected)
 	}

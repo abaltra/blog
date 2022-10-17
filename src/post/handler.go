@@ -3,14 +3,14 @@ package post
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
 
 	"glog/responsehandler"
-	"github.com/gorilla/mux"
 
+	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -20,7 +20,6 @@ type Handler struct {
 type updateRequest struct {
 	Body string `json:"Body"`
 }
-
 
 // Create godoc
 // @Summary      Create a new Post
@@ -32,9 +31,9 @@ type updateRequest struct {
 // @Success      200  {object}  post.Post
 // @Failure      400  {object}  responsehandler.Error
 // @Failure      500  {object}  responsehandler.Error
-// @Router       /v2/tenant/{tenantID/posts [get]
+// @Router       /v2/tenant/{tenantID}/posts [get]
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
 	vars := mux.Vars(r)
 
 	if err != nil {
@@ -57,6 +56,17 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Publish godoc
+// @Summary      Publish a Post
+// @Description  Publshes an existing Post, adding the proper timestamps
+// @Accept       json
+// @Produce      json
+// @Param        tenantID   path      int  true  "Tenant ID"
+// @Param        slug   path      string  true  "Unique slug of the post"
+// @Success      200
+// @Failure      400  {object}  responsehandler.Error
+// @Failure      500  {object}  responsehandler.Error
+// @Router       /v2/tenant/{tenantID}/posts/{slug}/publish [put]
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
@@ -95,7 +105,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestContents, err := ioutil.ReadAll(r.Body)
+	requestContents, err := io.ReadAll(r.Body)
 
 	if err != nil {
 		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
@@ -166,7 +176,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if from_int < 0 || size_int > 200 {
-		responsehandler.EncodeJSONError(w, fmt.Errorf("Invalid FROM %d smaller than 0 or SIZE %d larger than 100", from_int, size_int), http.StatusBadRequest)
+		responsehandler.EncodeJSONError(w, fmt.Errorf("invalid FROM %d smaller than 0 or SIZE %d larger than 100", from_int, size_int), http.StatusBadRequest)
 	}
 
 	showDrafts, _ := strconv.ParseBool(vars["showDrafts"])

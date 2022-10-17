@@ -42,7 +42,7 @@ func (m *Repository) Ping() error {
 
 func (m *Repository) Create(tenantID string, post Post) (Post, error) {
 	fmt.Println("Creating a post")
-	
+
 	postsCollection := DB.Database(tenantID).Collection("posts")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -100,10 +100,8 @@ func (m *Repository) List(tenantID string, from int, size int, filters map[strin
 
 	query := make(map[string]interface{})
 
-	if filters != nil {
-		for key, value := range filters {
-			query[key] = value
-		}
+	for key, value := range filters {
+		query[key] = value
 	}
 
 	_f := int64(from)
