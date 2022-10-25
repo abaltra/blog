@@ -1,9 +1,10 @@
 package post
 
 import (
-	"github.com/google/uuid"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Post struct {
@@ -36,7 +37,7 @@ func NewPost(author string, pr CreatePostRequest) *Post {
 		Title:      pr.Title,
 		Abstract:   pr.Abstract,
 		ContentRaw: pr.ContentRaw,
-		Slug: BuildSlug(pr.Title),
+		Slug:       BuildSlug(pr.Title),
 	}
 }
 

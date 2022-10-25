@@ -17,7 +17,7 @@ type Handler struct {
 	Repository *Repository
 }
 
-type updateRequest struct {
+type UpdateRequest struct {
 	Body string `json:"Body"`
 }
 
@@ -31,7 +31,7 @@ type updateRequest struct {
 // @Success      200  {object}  post.Post
 // @Failure      400  {object}  responsehandler.Error
 // @Failure      500  {object}  responsehandler.Error
-// @Router       /v2/tenant/{tenantID}/posts [get]
+// @Router       /v2/tenant/{tenantID}/posts [post]
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	vars := mux.Vars(r)
@@ -91,6 +91,18 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	h.Repository.Save(vars["tenantID"], *p)
 }
 
+// Create godoc
+// @Summary      Updates a Post
+// @Description  Changes post body and updates LastUpdateTime timestamp
+// @Accept       json
+// @Produce      json
+// @Param        tenantID   path      int  true  "Tenant ID"
+// @Param        slug   path      string  true  "Unique slug of the post"
+// @Param        {object} body UpdateRequest true "Post to create"
+// @Success      200
+// @Failure      400  {object}  responsehandler.Error
+// @Failure      500  {object}  responsehandler.Error
+// @Router       /v2/tenant/{tenantID}/posts/{slug} [post]
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
@@ -112,7 +124,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ur updateRequest
+	var ur UpdateRequest
 	json.Unmarshal(requestContents, &ur)
 
 	p.UpdatedAt = time.Now()
@@ -126,6 +138,17 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
 }
 
+// Create godoc
+// @Summary      Delete a Post
+// @Description  Completely removes a post
+// @Accept       json
+// @Produce      json
+// @Param        tenantID   path      int  true  "Tenant ID"
+// @Param        slug path string true "Unique slug of the post to delete"
+// @Success      200
+// @Failure      404  {object}  responsehandler.Error
+// @Failure      502  {object}  responsehandler.Error
+// @Router       /v2/tenant/{tenantID}/posts/{slug} [delete]
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
@@ -198,12 +221,22 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Create godoc
+// @Summary      Retrieve a Post
+// @Description  Retrieve an existing post
+// @Accept       json
+// @Produce      json
+// @Param        tenantID   path      int  true  "Tenant ID"
+// @Param        slug path string true "Unique slug of post to retrieve"
+// @Success      200  {object}  post.Post
+// @Failure      404  {object}  responsehandler.Error
+// @Router       /v2/tenant/{tenantID}/posts/{slug} [get]
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	p, err := h.Repository.GetBySlug(vars["tenantID"], vars["slug"])
 	if err != nil {
-		responsehandler.EncodeJSONError(w, err, http.StatusBadRequest)
+		responsehandler.EncodeJSONError(w, err, http.StatusNotFound)
 	} else {
 		responsehandler.EncodeJSONResponse(w, p, http.StatusOK, nil)
 	}

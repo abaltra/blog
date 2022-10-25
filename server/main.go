@@ -46,12 +46,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.PathPrefix("/swagger/*").Handler(httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("http://127.0.0.1:%s/swagger/doc.json", config.Port)),
-		httpSwagger.DeepLinking(true),
-		httpSwagger.DocExpansion("none"),
-		httpSwagger.DomID("#swagger-ui"),
-	)).Methods(http.MethodGet)
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	router.HandleFunc("/test", testHandler)
 	router.HandleFunc("/tenant/{tenantID}/posts", ph.List).Methods(http.MethodGet)

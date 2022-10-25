@@ -36,6 +36,11 @@ definitions:
       Version:
         type: integer
     type: object
+  post.UpdateRequest:
+    properties:
+      Body:
+        type: string
+    type: object
   responsehandler.Error:
     description: Error message with HTTP status code and error message
     properties:
@@ -57,7 +62,7 @@ info:
   version: "1.0"
 paths:
   /v2/tenant/{tenantID}/posts:
-    get:
+    post:
       consumes:
       - application/json
       description: Create a new post with an auto-generated ID
@@ -89,6 +94,98 @@ paths:
           schema:
             $ref: '#/definitions/responsehandler.Error'
       summary: Create a new Post
+  /v2/tenant/{tenantID}/posts/{slug}:
+    delete:
+      consumes:
+      - application/json
+      description: Completely removes a post
+      parameters:
+      - description: Tenant ID
+        in: path
+        name: tenantID
+        required: true
+        type: integer
+      - description: Unique slug of the post to delete
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsehandler.Error'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/responsehandler.Error'
+      summary: Delete a Post
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an existing post
+      parameters:
+      - description: Tenant ID
+        in: path
+        name: tenantID
+        required: true
+        type: integer
+      - description: Unique slug of post to retrieve
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/post.Post'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/responsehandler.Error'
+      summary: Retrieve a Post
+    post:
+      consumes:
+      - application/json
+      description: Changes post body and updates LastUpdateTime timestamp
+      parameters:
+      - description: Tenant ID
+        in: path
+        name: tenantID
+        required: true
+        type: integer
+      - description: Unique slug of the post
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Post to create
+        in: body
+        name: '{object}'
+        required: true
+        schema:
+          $ref: '#/definitions/post.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responsehandler.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responsehandler.Error'
+      summary: Updates a Post
   /v2/tenant/{tenantID}/posts/{slug}/publish:
     put:
       consumes:

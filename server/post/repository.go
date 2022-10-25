@@ -109,6 +109,10 @@ func (m *Repository) List(tenantID string, from int, size int, filters map[strin
 	options := &options.FindOptions{
 		Skip:  &_f,
 		Limit: &_s,
+		Projection: map[string]int{
+			"_id":        0,
+			"ContentRaw": 0,
+		},
 	}
 
 	results := []*Post{}
